@@ -16,35 +16,44 @@
 
 package org.jetbrains.kotlin.generators.builtins.functions
 
-import org.jetbrains.kotlin.generators.builtins.functions.FunctionKind.*
+import org.jetbrains.kotlin.generators.builtins.functions.FunctionKind.EXTENSION_FUNCTION
+import org.jetbrains.kotlin.generators.builtins.functions.FunctionKind.FUNCTION
+import org.jetbrains.kotlin.generators.builtins.functions.FunctionKind.K_EXTENSION_FUNCTION
+import org.jetbrains.kotlin.generators.builtins.functions.FunctionKind.K_MEMBER_FUNCTION
 import org.jetbrains.kotlin.generators.builtins.generateBuiltIns.BuiltInsSourceGenerator
 import java.io.PrintWriter
 
 val MAX_PARAM_COUNT = 22
 
 enum class FunctionKind(
-        private val classNamePrefix: String,
+        val classFqNamePrefix: String,
         val docPrefix: String,
         val hasReceiverParameter: Boolean,
-        private val superClassNamePrefix: String?
+        val superClassNamePrefix: String?
 ) {
-    FUNCTION : FunctionKind("Function", "A function", false, null)
-    EXTENSION_FUNCTION : FunctionKind("ExtensionFunction", "An extension function", true, null)
+    FUNCTION : FunctionKind(
+            "kotlin.jvm.functions.Function", "A function", false, null
+    )
+    EXTENSION_FUNCTION : FunctionKind(
+            "kotlin.ExtensionFunction", "An extension function", true, null
+    )
+    K_MEMBER_FUNCTION : FunctionKind(
+            "kotlin.reflect.KMemberFunction", "A member function with introspection capabilities", true, "ExtensionFunction"
+    )
+    K_EXTENSION_FUNCTION : FunctionKind(
+            "kotlin.reflect.KExtensionFunction", "An extension function with introspection capabilities", true, "ExtensionFunction"
+    )
 
-    K_FUNCTION : FunctionKind("KFunction", "A function with introspection capabilities", false, "Function")
-    K_MEMBER_FUNCTION : FunctionKind("KMemberFunction", "A member function with introspection capabilities", true, "ExtensionFunction")
-    K_EXTENSION_FUNCTION : FunctionKind("KExtensionFunction", "An extension function with introspection capabilities", true, "ExtensionFunction")
+    val classNamePrefix: String get() = classFqNamePrefix.substringAfterLast('.')
+    val packageFqName: String get() = classFqNamePrefix.substringBeforeLast('.')
+    val fileName: String get() = classFqNamePrefix.replace('.', '/') + "s.kt"
 
-    fun getFileName() = (if (isReflection()) "reflect/" else "") + classNamePrefix + "s.kt"
     fun getClassName(i: Int) = classNamePrefix + i
     fun getSuperClassName(i: Int) = superClassNamePrefix?.plus(i)
-    fun getPackage() = if (isReflection()) "kotlin.reflect" else "kotlin"
-
-    fun isReflection() = name() startsWith "K"
 }
 
 class GenerateFunctions(out: PrintWriter, val kind: FunctionKind) : BuiltInsSourceGenerator(out) {
-    override fun getPackage() = kind.getPackage()
+    override fun getPackage() = kind.packageFqName
 
     fun generateTypeParameters(i: Int, variance: Boolean) {
         out.print("<")
@@ -102,7 +111,7 @@ class GenerateFunctions(out: PrintWriter, val kind: FunctionKind) : BuiltInsSour
             generateInvokeSignature(i)
             out.println("}")
         }
-        K_FUNCTION, K_MEMBER_FUNCTION, K_EXTENSION_FUNCTION -> {
+        K_MEMBER_FUNCTION, K_EXTENSION_FUNCTION -> {
             out.println()
         }
     }
