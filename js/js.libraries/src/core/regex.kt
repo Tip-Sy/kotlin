@@ -115,8 +115,10 @@ public class Regex(pattern: String, options: Set<RegexOption>) {
      *
      * @param replacement A replacement expression that can include substitutions. See [Matcher.appendReplacement] for details.
      */
-    public fun replaceFirst(input: CharSequence, replacement: String): String =
-            input.toString().nativeReplace(RegExp(pattern, options.map { it.value }.joinToString()), replacement)
+    public fun replaceFirst(input: CharSequence, replacement: String): String {
+        val nonGlobalOptions = options.map { it.value }.joinToString()
+        return input.toString().nativeReplace(RegExp(pattern, nonGlobalOptions), replacement)
+    }
 
     /**
      * Splits this string around matches of the given regular expression.
