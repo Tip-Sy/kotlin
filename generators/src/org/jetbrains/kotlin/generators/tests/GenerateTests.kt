@@ -306,9 +306,9 @@ fun main(args: Array<String>) {
         }
     }
 
-    testGroup("compiler/java8-tests/tests", "compiler/java8-tests/testData") {
-        testClass(javaClass<AbstractBlackBoxCodegenTest>(), "BlackBoxWithJavaCodegenTestGenerated") {
-            model("codegen/boxWithJava", testMethod = "doTestWithJava", extension = null, recursive = true, excludeParentDirs = true)
+    testGroup("compiler/java8-tests/tests", "compiler/testData") {
+        testClass(javaClass<AbstractBlackBoxCodegenTest>(), "BlackBoxWithJava8CodegenTestGenerated") {
+            model("codegen/java8/boxWithJava", testMethod = "doTestWithJava", extension = null, recursive = true, excludeParentDirs = true)
         }
     }
 
